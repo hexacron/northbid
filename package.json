@@ -1,0 +1,33 @@
+{
+  "name": "northbid",
+  "version": "0.1.0",
+  "description": "Search Government of Canada procurement data (CanadaBuys) from any MCP client. Unofficial.",
+  "type": "module",
+  "bin": {
+    "northbid": "server/index.js"
+  },
+  "files": [
+    "server"
+  ],
+  "scripts": {
+    "start": "node server/index.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": "^22.16.0 || >=24.0.0"
+  },
+  "keywords": [
+    "mcp",
+    "canada",
+    "procurement",
+    "canadabuys",
+    "tenders",
+    "government"
+  ],
+  "homepage": "https://github.com/hexacron/northbid",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hexacron/northbid.git"
+  },
+  "license": "MIT"
+}

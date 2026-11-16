@@ -1,0 +1,12 @@
+{
+  "name": "northbid",
+  "description": "Northbid: search Government of Canada procurement data from CanadaBuys.",
+  "owner": { "name": "hexacron" },
+  "plugins": [
+    {
+      "name": "northbid",
+      "source": "./",
+      "description": "Search open Government of Canada tenders and standing offers from CanadaBuys open data, in English or French. Unofficial."
+    }
+  ]
+}
