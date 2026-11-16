@@ -154,6 +154,121 @@ Example: `{"supplier": "fca canada", "commodity": "25", "lang": "fr"}`
 
 Agreement types: `SA` supply arrangement; `NMSO` and `RMSO` national and regional master standing offers; `NISO`, `RISO` and `DISO` national, regional and departmental individual standing offers. French output uses the French abbreviations.
 
+## search_awards
+
+Search award notices published on CanadaBuys since August 2022. One result is one notice at its latest amendment: a contract, standing offer or supply arrangement and the supplier that won it. With no arguments it lists the most recent awards. The first call downloads about 110 MB; see [data.md](data.md#source-files).
+
+| Parameter | Type | Notes |
+|---|---|---|
+| `query` | string | Searches titles, descriptions, commodity names, supplier and buyer names, solicitation and contract numbers |
+| `match` | `all` \| `any` | Default `all` |
+| `supplier` | string | Words from the supplier's legal name |
+| `buyer` | string | Words from the contracting or end-user organization, either language |
+| `category` | array | Any of `construction`, `goods`, `services`, `services_related_to_goods` |
+| `unspsc` | string | UNSPSC code or prefix, 2 to 8 digits |
+| `region` | string | Text contained in a region of delivery |
+| `competitive` | boolean | `true`: competitive methods only. `false`: non-competitive awards and advance contract award notices only. Awards with no stated method match neither |
+| `awarded_after`, `awarded_before` | `YYYY-MM-DD` | By contract award date |
+| `min_value`, `max_value` | integer | In the contract's currency. Awards with no stated value never match `max_value`, or a `min_value` above zero |
+| `include_cancelled` | boolean | Default `false` |
+| `sort` | `relevance` \| `newest` \| `highest_value` | Default `relevance` with a query, otherwise `newest` |
+| `lang`, `limit`, `offset` | | As above |
+
+Example: `{"query": "snow removal OR deneigement", "min_value": 100000, "limit": 1}`
+
+```json
+{
+  "total": 108,
+  "offset": 0,
+  "returned": 1,
+  "next_offset": 1,
+  "results": [
+    {
+      "reference_number": "CW2331814",
+      "solicitation_number": "WS4110213535",
+      "title": "Contract WorkspaceEE517-240258 - Snow removal Services - Sidewalks, entrances exits and fire escapes",
+      "supplier": "9255-1241 Québec inc, Déneigement Jocelyn Ouellet",
+      "supplier_location": "Mont-Joli, Québec, CA",
+      "buyer": "Department of Public Works and Government Services (PSPC)",
+      "end_users": ["Department of Public Works and Government Services (PSPC)"],
+      "value": 262717.88,
+      "currency": "CAD",
+      "awarded": "2023-09-21",
+      "contract_end": "2027-09-30",
+      "instrument_type": "Contract",
+      "procurement_method": "Competitive - Open bidding",
+      "categories": ["services"],
+      "url": "https://canadabuys.canada.ca/en/tender-opportunities/award-notice/cw2331814"
+    }
+  ],
+  "source_updated": "2026-11-16T10:30:11Z"
+}
+```
+
+`value` is the total contract value, or the contract amount when the buyer gave no total; both fields are left out when neither was given, as for standing offers and supply arrangements. `status` appears only when the notice is not active (`Expired`, `Cancelled`).
+
+## get_award
+
+Full record for an award notice.
+
+| Parameter | Type | Notes |
+|---|---|---|
+| `id` | string, required | Reference, solicitation or contract number. A solicitation with several awards returns the 20 most recent, and `total` gives the full count |
+| `lang` | `en` \| `fr` | Default `en` |
+| `max_description_chars` | integer | Default 6000. When the description is cut, `description_truncated` is `true` |
+
+Adds to the summary: `contract_number`, `amendment_number`, `amendment_type`, `published`, `amended`, `contract_start`, `notice_type`, `selection_criteria`, `limited_tendering_reason`, `trade_agreements`, `regions_of_delivery`, `unspsc_codes`, `unspsc`, `description` and `contact`.
+
+## summarize_awards
+
+Counts award notices and totals their value per supplier, buyer or award year. It takes every filter of `search_awards`, plus:
+
+| Parameter | Type | Notes |
+|---|---|---|
+| `group_by` | `supplier` \| `buyer` \| `year`, required | `buyer` is the contracting organization. `year` is the calendar year of the award date, listed newest first |
+| `sort` | `total_value` \| `awards` | Default `total_value` |
+
+Example: `{"group_by": "supplier", "query": "translation OR traduction", "awarded_after": "2025-04-01", "limit": 2}`
+
+```json
+{
+  "awards": 171,
+  "total_value_cad": 44858765,
+  "awards_without_value": 89,
+  "awards_in_other_currencies": 0,
+  "total": 114,
+  "offset": 0,
+  "returned": 2,
+  "next_offset": 2,
+  "results": [
+    {
+      "supplier": "R&R International Translation Specialists Inc.",
+      "awards": 5,
+      "total_value_cad": 8146105,
+      "largest_value_cad": 7342315,
+      "first_award": "2025-04-16",
+      "latest_award": "2026-07-21"
+    },
+    {
+      "supplier": "SYM COMMUNICATIONS INC./COMMUNICATIONS SYM INC.",
+      "awards": 8,
+      "total_value_cad": 4560685,
+      "largest_value_cad": 1437188,
+      "first_award": "2026-05-08",
+      "latest_award": "2026-11-09"
+    }
+  ],
+  "source_updated": "2026-11-16T10:30:11Z"
+}
+```
+
+The top-level `awards` and `total_value_cad` cover everything the filters matched; `total` is the number of groups. Treat the totals as indicative:
+
+- Only Canadian-dollar values are added. `awards_in_other_currencies` counts the valued awards left out.
+- `awards_without_value` counts awards with no value, mostly standing offers and supply arrangements.
+- Supplier names are grouped ignoring case, periods and commas. Other variants of one company's name are separate rows.
+- Each value is the contract's latest published total, including amendments.
+
 ## data_status
 
 No parameters. Lists each source file with `loaded`, `rows_in_file`, `source_updated`, `fetched_at` and `checked_at`, plus row counts per table and the database path. Does not use the network.
@@ -166,7 +281,11 @@ No parameters. Checks every source file now and downloads those that changed, th
 |---|---|
 | New tender notices | every 2 hours |
 | Open tender notices | every 6 hours |
+| Award notices, current fiscal year | every 6 hours |
+| Award notices, earlier fiscal years | every 24 hours |
 | Standing offers and supply arrangements | every 24 hours |
+
+A file is only downloaded again when the source reports that it changed. If no award search has been run yet, `refresh_data` downloads the award files too.
 
 ## Prompt: find_opportunities
 

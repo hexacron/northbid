@@ -10,7 +10,7 @@ import { records } from './csv.js';
 import { FILES, TABLES } from './datasets.js';
 import { download } from './download.js';
 
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 
 /** Cache directory: explicit override, then the plugin data dir, then the OS cache dir. */
 export function defaultDataDir(env = process.env) {
@@ -45,7 +45,9 @@ export class Store {
     const sql = ['DROP TABLE IF EXISTS files'];
     for (const [name, t] of Object.entries(TABLES)) {
       sql.push(`DROP TABLE IF EXISTS ${name}_fts`, `DROP TABLE IF EXISTS ${name}`);
-      const cols = t.columns.map((c) => `${c} TEXT NOT NULL${c === t.primaryKey ? ' PRIMARY KEY' : ''}`);
+      const cols = t.columns.map(
+        (c) => `${c} ${t.real?.includes(c) ? 'REAL' : 'TEXT'} NOT NULL${c === t.primaryKey ? ' PRIMARY KEY' : ''}`,
+      );
       sql.push(`CREATE TABLE ${name} (${cols.join(', ')}, source TEXT NOT NULL)`);
       for (const c of t.indexes) sql.push(`CREATE INDEX ${name}_${c} ON ${name} (${c})`);
       sql.push(
@@ -170,10 +172,15 @@ export class Store {
     return warnings;
   }
 
-  /** When the source last published the required file behind `table`. */
+  /** When the source last published the newest of the main files behind `table`. */
   sourceUpdated(table) {
-    const file = FILES.find((f) => f.table === table && f.required);
-    return this.#file(file.id)?.source_updated ?? null;
+    let latest = null;
+    for (const f of FILES) {
+      if (f.table !== table || f.supplementary) continue;
+      const updated = this.#file(f.id)?.source_updated;
+      if (updated && (!latest || updated > latest)) latest = updated;
+    }
+    return latest;
   }
 
   status() {

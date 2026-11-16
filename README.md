@@ -12,6 +12,8 @@ It works with Claude Code and Cowork, Codex and the ChatGPT desktop app, Gemini 
 - "What IT security opportunities close in the next three weeks? Show the selection criteria for the top three."
 - "Quels appels d'offres fédéraux sont ouverts pour des travaux de construction au Québec ?"
 - "Which suppliers hold standing offers for light duty vehicles, and when do they expire?"
+- "Who won the last snow removal contracts at CFB Petawawa, and for how much?"
+- "Which suppliers won the most translation work since April 2025?"
 
 ## What it covers
 
@@ -19,8 +21,9 @@ It works with Claude Code and Cowork, Codex and the ChatGPT desktop app, Gemini 
 |---|---|---|
 | Open tender notices | about 950 | daily, plus new notices every 2 hours |
 | Active standing offers and supply arrangements | about 4,000 agreements | weekly |
+| Award notices since August 2022 | about 30,000 | daily |
 
-Federal organizations only. Awards, contract history, closed tenders and the 2009–2022 archives are on the [roadmap](#roadmap). See [docs/data.md](docs/data.md) for the schema and known quirks.
+Federal organizations only. Contract amendments, closed tenders and the archives before August 2022 are on the [roadmap](#roadmap). See [docs/data.md](docs/data.md) for the schema and known quirks.
 
 ## Requirements
 
@@ -63,6 +66,9 @@ Clone the repository and register a stdio server that runs `node /absolute/path/
 | `search_tenders` | Search open tenders by keyword, buyer, category, UNSPSC code, delivery region and dates |
 | `get_tender` | Full record for one tender: description, criteria, trade agreements, contact, attachments |
 | `search_standing_offers` | Search standing offers and supply arrangements by keyword, supplier, department, commodity |
+| `search_awards` | Search contract awards by keyword, supplier, buyer, category, UNSPSC code, region, value and dates |
+| `get_award` | Full record for an award: supplier, value, contract dates, procurement method, description |
+| `summarize_awards` | Count awards and total their value by supplier, buyer or year |
 | `data_status` | Show what is loaded and how current it is |
 | `refresh_data` | Check CanadaBuys for newer files now |
 
@@ -70,8 +76,8 @@ Search matches English and French text at once and ignores accents. Full paramet
 
 ## What it does on your computer
 
-- **Downloads** three CSV files from `canadabuys.canada.ca` and `sosa.canadabuys.canada.ca`, about 10 MB in total, on first use, then re-checks them on a schedule and downloads only what changed. One of those hosts serves an incomplete certificate chain, so the missing issuer certificate is fetched from the address named in the certificate (currently `crt.sectigo.com`) and verified against Node's trusted roots.
-- **Stores** the data in one SQLite file in the plugin's data directory, or your operating system's cache directory when run outside Claude. Deleting the file is safe; it is rebuilt on next use.
+- **Downloads** CSV files from `canadabuys.canada.ca` and `sosa.canadabuys.canada.ca`: three files of about 10 MB in total on first use, and five more of about 110 MB in total the first time you ask about contract awards. It then re-checks them on a schedule and downloads only what changed. One of those hosts serves an incomplete certificate chain, so the missing issuer certificate is fetched from the address named in the certificate (currently `crt.sectigo.com`) and verified against Node's trusted roots.
+- **Stores** the data in one SQLite file in the plugin's data directory, or your operating system's cache directory when run outside Claude. It grows to about 165 MB once awards are loaded. Deleting the file is safe; it is rebuilt on next use.
 - **Sends nothing else.** Your searches and conversations stay on your machine. There is no telemetry and no account. See [PRIVACY.md](PRIVACY.md).
 
 Settings, all optional environment variables:
@@ -90,8 +96,8 @@ Settings, all optional environment variables:
 
 ## Roadmap
 
-1. Award notices and contract history, with supplier and buyer profiles.
-2. Aggregations, a read-only SQL tool, and optional download of the full history back to 2009.
+1. Contract history with every amendment, and optional download of the archives back to 2009.
+2. A read-only SQL tool for questions the search tools do not cover.
 3. Proactive disclosure of contracts over $10,000 from all departments.
 
 ## Documentation

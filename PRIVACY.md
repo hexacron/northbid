@@ -8,7 +8,7 @@ Only requests to download public data files:
 
 | Destination | Why |
 |---|---|
-| `canadabuys.canada.ca` | Open and new tender notice files |
+| `canadabuys.canada.ca` | Open and new tender notice files, and award notice files |
 | `sosa.canadabuys.canada.ca` | Standing offers and supply arrangements file |
 | The issuer address named in a server certificate (currently `crt.sectigo.com`) | Fetches a missing intermediate certificate when a host above serves an incomplete chain |
 

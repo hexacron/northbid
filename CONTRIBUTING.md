@@ -43,7 +43,7 @@ claude plugin validate .
 
 ## Releasing
 
-Raise the version in `package.json`, `.claude-plugin/plugin.json` and `gemini-extension.json` together, and add an entry to [CHANGELOG.md](CHANGELOG.md).
+Raise the version in `package.json`, `server.json` (both `version` fields), `.claude-plugin/plugin.json` and `gemini-extension.json` together, and add an entry to [CHANGELOG.md](CHANGELOG.md).
 
 ## Reporting data problems
 

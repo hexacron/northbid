@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { FILES } from '../server/datasets.js';
-import { ftsQuery, searchStandingOffers, searchTenders } from '../server/search.js';
+import {
+  ftsQuery, getAwards, searchAwards, searchStandingOffers, searchTenders, summarizeAwards,
+} from '../server/search.js';
 import { Store } from '../server/store.js';
 import { cleanText } from '../server/text.js';
 
@@ -123,6 +125,67 @@ test('standing offers collapse to one row per agreement with delivery points mer
   assert.equal(active.rows[0].commodity_codes, '25100000\n25101500');
   assert.equal(searchStandingOffers(store.db, { ...DEFAULTS, commodity: '2510', include_expired: true }, TODAY).total, 2);
   assert.equal(searchStandingOffers(store.db, { ...DEFAULTS, supplier: 'acme', region: 'ontario' }, TODAY).total, 1);
+});
+
+async function awardStore() {
+  const [first, second] = FILES.filter((f) => f.table === 'awards');
+  const award = (ref, supplier, fields) => ({
+    'referenceNumber-numeroReference': ref,
+    'supplierLegalName-nomLegalFournisseur-eng': supplier,
+    'contractCurrency-contratMonnaie': 'CAD',
+    'awardStatus-attributionStatut-eng': 'Active',
+    'procurementMethod-methodeApprovisionnement-eng': 'Competitive - Open bidding',
+    'contractAwardDate-dateAttributionContrat': '2025-06-01',
+    ...fields,
+  });
+  const store = new Store(':memory:');
+  await load(store, first, [
+    award('aw-1', 'Acme Inc.', {
+      'title-titre-fra': 'Services de déneigement',
+      'solicitationNumber-numeroSollicitation': 'SOL-1',
+      'contractNumber-numeroContrat': 'C-1',
+      'contractAmount-montantContrat': '0.00',
+      'totalContractValue-valeurTotaleContrat': '300000.50',
+    }),
+    award('aw-2', 'ACME INC', {
+      'solicitationNumber-numeroSollicitation': 'SOL-1',
+      'contractAmount-montantContrat': '100000.00',
+      'totalContractValue-valeurTotaleContrat': '0.00',
+      'procurementMethod-methodeApprovisionnement-eng': 'Non-competitive',
+    }),
+  ]);
+  await load(store, second, [
+    award('aw-3', 'Borealis Ltd', { 'totalContractValue-valeurTotaleContrat': '900000', 'contractCurrency-contratMonnaie': 'USD' }),
+    award('aw-4', 'Borealis Ltd', { 'instrumentType-typeInstrument-eng': 'Standing Offer' }),
+    award('aw-5', 'Borealis Ltd', { 'totalContractValue-valeurTotaleContrat': '5', 'awardStatus-attributionStatut-eng': 'Cancelled' }),
+  ]);
+  return store;
+}
+
+test('awards: value falls back to the amount, and filters do not confuse the two procurement methods', async () => {
+  const store = await awardStore();
+  const search = (a) => searchAwards(store.db, { ...DEFAULTS, ...a });
+  assert.deepEqual(search({ sort: 'highest_value' }).rows.map((r) => [r.reference_number, r.value]), [
+    ['aw-3', 900000], ['aw-1', 300000.5], ['aw-2', 100000], ['aw-4', 0],
+  ]);
+  assert.deepEqual(refs(search({ include_cancelled: true })), ['aw-1', 'aw-2', 'aw-3', 'aw-4', 'aw-5']);
+  assert.deepEqual(refs(search({ supplier: 'acme', competitive: true })), ['aw-1']);
+  assert.deepEqual(refs(search({ competitive: false })), ['aw-2']);
+  assert.deepEqual(refs(search({ query: 'deneigement' })), ['aw-1']);
+  assert.deepEqual(refs(search({ min_value: 200000 })), ['aw-1', 'aw-3']);
+  assert.deepEqual(refs(search({ max_value: 200000 })), ['aw-2']);
+  assert.deepEqual(refs(getAwards(store.db, 'sol-1', 20)), ['aw-1', 'aw-2']);
+  assert.deepEqual(refs(getAwards(store.db, 'C-1', 20)), ['aw-1']);
+});
+
+test('award summaries merge name variants and total Canadian dollars only', async () => {
+  const store = await awardStore();
+  const { overall, rows } = summarizeAwards(store.db, { ...DEFAULTS, group_by: 'supplier', sort: 'total_value', lang: 'en' });
+  assert.deepEqual(
+    rows.map((r) => [r.name.toUpperCase().replace('.', ''), r.awards, r.total_value_cad]),
+    [['ACME INC', 2, 400000.5], ['BOREALIS LTD', 2, 0]],
+  );
+  assert.deepEqual({ ...overall }, { awards: 4, groups: 2, total_value_cad: 400000.5, without_value: 1, other_currency: 1 });
 });
 
 test('cleanText keeps comparison signs that are not tags', () => {

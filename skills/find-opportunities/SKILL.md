@@ -37,6 +37,8 @@ Call `get_tender` for each candidate that looks like a fit. Check:
 
 Run `search_standing_offers` with the same terms. Tell the user which suppliers hold related agreements and when those agreements expire, since an expiring agreement is often re-competed.
 
+Run `search_awards` with the same terms to show who won similar contracts and for how much, and `summarize_awards` with `group_by: "supplier"` when the user wants to know the main competitors. For a tender that renews existing work, the previous award names the incumbent and its contract end date. The first award search downloads about 110 MB and can take a minute; say so before you run it.
+
 ## 5. Report
 
 Give a shortlist as a table: title, buyer, closing date and time, why it fits, and the link. Then add:
@@ -45,4 +47,4 @@ Give a shortlist as a table: title, buyer, closing date and time, why it fits, a
 - the data date from `source_updated`, and that new notices can take up to a day to appear;
 - the linked CanadaBuys page and its documents are authoritative, and the user must confirm details there before bidding.
 
-Northbid covers open federal tenders and active standing offers only. If the user asks about provincial or municipal tenders, past awards or contract history, say that it is not covered.
+Northbid covers open federal tenders, active standing offers, and awards published since August 2022. If the user asks about provincial or municipal tenders, closed tenders or older awards, say that it is not covered. Award values are as published and include amendments; totals from `summarize_awards` are indicative.

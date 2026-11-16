@@ -1,6 +1,7 @@
 {
   "name": "northbid",
-  "version": "0.1.0",
+  "version": "0.2.0",
+  "mcpName": "io.github.hexacron/northbid",
   "description": "Search Government of Canada procurement data (CanadaBuys) from any MCP client. Unofficial.",
   "type": "module",
   "bin": {

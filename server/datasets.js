@@ -51,6 +51,33 @@ export const TABLES = {
     ],
     indexes: ['expiry_date', 'agreement_number'],
   },
+  awards: {
+    primaryKey: 'reference_number',
+    columns: [
+      'reference_number', 'amendment_number', 'solicitation_number', 'contract_number',
+      'title_en', 'title_fr', 'description_en', 'description_fr',
+      'publication_date', 'award_date', 'amendment_date', 'contract_start_date', 'contract_end_date',
+      'value', 'currency', 'status_en', 'status_fr',
+      'instrument_type_en', 'instrument_type_fr', 'amendment_type_en', 'amendment_type_fr', 'categories',
+      'notice_type_en', 'notice_type_fr', 'procurement_method_en', 'procurement_method_fr',
+      'selection_criteria_en', 'selection_criteria_fr',
+      'limited_tendering_reason_en', 'limited_tendering_reason_fr',
+      'trade_agreements_en', 'trade_agreements_fr',
+      'regions_of_delivery_en', 'regions_of_delivery_fr',
+      'unspsc_codes', 'unspsc_en', 'unspsc_fr',
+      'supplier_name', 'supplier_location_en', 'supplier_location_fr',
+      'buyer_en', 'buyer_fr', 'end_user_en', 'end_user_fr',
+      'contact_name', 'contact_email', 'contact_phone',
+    ],
+    // Stored as numbers so they can be compared and summed.
+    real: ['value'],
+    fts: [
+      'title_en', 'title_fr', 'description_en', 'description_fr', 'unspsc_en', 'unspsc_fr',
+      'supplier_name', 'buyer_en', 'buyer_fr', 'end_user_en', 'end_user_fr',
+      'solicitation_number', 'contract_number',
+    ],
+    indexes: ['award_date', 'value', 'solicitation_number', 'contract_number', 'supplier_name'],
+  },
 };
 
 function address(get, lang) {
@@ -163,8 +190,106 @@ async function* standingOfferRows(recs) {
   }
 }
 
+// Town, province and country only: some suppliers are individuals, and their
+// street address adds nothing to a search.
+function supplierLocation(get, lang) {
+  return [
+    get(`supplierAddressCity-fournisseurAdresseVille-${lang}`),
+    get(`supplierAddressProvince-fournisseurAdresseProvince-${lang}`),
+    get(`supplierAddressCountry-fournisseurAdressePays-${lang}`),
+  ].map(trim).filter(Boolean).join(', ');
+}
+
+// One row per notice, carrying its latest amendment. The total contract value
+// is cumulative across amendments but some buyers leave it at zero and fill
+// only the amount, so the first non-zero of the two is kept. Standing offers
+// and supply arrangements have no value and stay at zero.
+async function* awardRows(recs) {
+  for await (const get of recs) {
+    const total = Number(get('totalContractValue-valeurTotaleContrat'));
+    const amount = Number(get('contractAmount-montantContrat'));
+    yield {
+      reference_number: trim(get('referenceNumber-numeroReference')),
+      amendment_number: trim(get('amendmentNumber-numeroModification')),
+      solicitation_number: trim(get('solicitationNumber-numeroSollicitation')),
+      contract_number: trim(get('contractNumber-numeroContrat')),
+      title_en: cleanText(get('title-titre-eng')),
+      title_fr: cleanText(get('title-titre-fra')),
+      description_en: cleanText(get('awardDescription-descriptionAttribution-eng')),
+      description_fr: cleanText(get('awardDescription-descriptionAttribution-fra')),
+      publication_date: trim(get('publicationDate-datePublication')),
+      award_date: trim(get('contractAwardDate-dateAttributionContrat')),
+      amendment_date: trim(get('amendmentDate-dateModification')),
+      contract_start_date: trim(get('contractStartDate-contratDateDebut')),
+      contract_end_date: trim(get('contractEndDate-dateFinContrat')),
+      value: total > 0 ? total : amount > 0 ? amount : 0,
+      currency: trim(get('contractCurrency-contratMonnaie')),
+      status_en: trim(get('awardStatus-attributionStatut-eng')),
+      status_fr: trim(get('awardStatus-attributionStatut-fra')),
+      instrument_type_en: trim(get('instrumentType-typeInstrument-eng')),
+      instrument_type_fr: trim(get('instrumentType-typeInstrument-fra')),
+      amendment_type_en: trim(get('amendmentType-typeModification-eng')),
+      amendment_type_fr: trim(get('amendmentType-typeModification-fra')),
+      categories: multi(get('procurementCategory-categorieApprovisionnement')),
+      notice_type_en: trim(get('noticeType-avisType-eng')),
+      notice_type_fr: trim(get('noticeType-avisType-fra')),
+      procurement_method_en: trim(get('procurementMethod-methodeApprovisionnement-eng')),
+      procurement_method_fr: trim(get('procurementMethod-methodeApprovisionnement-fra')),
+      selection_criteria_en: trim(get('selectionCriteria-criteresSelection-eng')),
+      selection_criteria_fr: trim(get('selectionCriteria-criteresSelection-fra')),
+      limited_tendering_reason_en: multi(get('limitedTenderingReason-raisonAppelOffresLimite-eng')),
+      limited_tendering_reason_fr: multi(get('limitedTenderingReason-raisonAppelOffresLimite-fra')),
+      trade_agreements_en: multi(get('tradeAgreements-accordsCommerciaux-eng')),
+      trade_agreements_fr: multi(get('tradeAgreements-accordsCommerciaux-fra')),
+      regions_of_delivery_en: multi(get('regionsOfDelivery-regionsLivraison-eng')),
+      regions_of_delivery_fr: multi(get('regionsOfDelivery-regionsLivraison-fra')),
+      unspsc_codes: multi(get('unspsc')),
+      unspsc_en: multi(get('unspscDescription-eng')),
+      unspsc_fr: multi(get('unspscDescription-fra')),
+      supplier_name:
+        trim(get('supplierLegalName-nomLegalFournisseur-eng')) || trim(get('supplierLegalName-nomLegalFournisseur-fra')),
+      supplier_location_en: supplierLocation(get, 'eng'),
+      supplier_location_fr: supplierLocation(get, 'fra'),
+      buyer_en: trim(get('contractingEntityName-nomEntitContractante-eng')),
+      buyer_fr: trim(get('contractingEntityName-nomEntitContractante-fra')),
+      end_user_en: multi(get('endUserEntitiesName-nomEntitesUtilisateurFinal-eng')),
+      end_user_fr: multi(get('endUserEntitiesName-nomEntitesUtilisateurFinal-fra')),
+      contact_name: trim(get('contactInfoName-informationsContactNom')),
+      contact_email: trim(get('contactInfoEmail-informationsContactCourriel')),
+      contact_phone: trim(get('contactInfoPhone-contactInfoTelephone')),
+    };
+  }
+}
+
+// Award notices come in one file per federal fiscal year (April to March),
+// each holding the notices last published in that year. The first CanadaBuys
+// year is 2022-2023. Only the current year's file changes from day to day; it
+// may not exist yet in the first days of April, so it is not required.
+const FIRST_AWARD_YEAR = 2022;
+
+function awardFiles(now) {
+  const local = new Date(now - 5 * HOUR);
+  const current = local.getUTCFullYear() - (local.getUTCMonth() < 3 ? 1 : 0);
+  const files = [];
+  for (let year = FIRST_AWARD_YEAR; year <= current; year++) {
+    files.push({
+      id: `awards_${year}`,
+      label: `Award notices, ${year}-${year + 1}`,
+      url: `${PUB}${year}-${year + 1}-awardNotice-avisAttribution.csv`,
+      table: 'awards',
+      rows: awardRows,
+      onConflict: 'REPLACE',
+      ttl: (year === current ? 6 : 24) * HOUR,
+      required: year < current,
+    });
+  }
+  return files;
+}
+
 // `ttl` is how long a successful check is trusted before the next conditional
 // request. `onConflict` decides which file wins when both carry a notice.
+// A `supplementary` file does not count towards the data date reported for
+// its table. The list is fixed when the server starts.
 export const FILES = [
   {
     id: 'open_tenders',
@@ -187,6 +312,7 @@ export const FILES = [
     onConflict: 'IGNORE',
     ttl: 2 * HOUR,
     required: false,
+    supplementary: true,
   },
   {
     id: 'standing_offers',
@@ -198,4 +324,5 @@ export const FILES = [
     ttl: 24 * HOUR,
     required: true,
   },
+  ...awardFiles(Date.now()),
 ];

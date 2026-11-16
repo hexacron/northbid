@@ -1,8 +1,8 @@
 {
   "name": "northbid",
   "displayName": "Northbid: Canadian Procurement Search",
-  "version": "0.1.0",
-  "description": "Search open Government of Canada tenders and standing offers from CanadaBuys open data, in English or French. Unofficial.",
+  "version": "0.2.0",
+  "description": "Search Government of Canada tenders, contract awards and standing offers from CanadaBuys open data, in English or French. Unofficial.",
   "author": {
     "name": "hexacron",
     "url": "https://github.com/hexacron"

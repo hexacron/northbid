@@ -50,6 +50,8 @@ Each tool call that reads a table first calls `Store.refresh(table)`:
 
 Open and new tender notices share the `tenders` table. Rows from the open file replace any row with the same reference number; rows from the new-notices file are inserted only when the reference number is absent. Each file's rows are tagged so that reloading one never removes the other's.
 
+Award notices come as one file per fiscal year, all loaded into `awards`. The list of years is worked out when the server starts, from 2022-2023 to the current year. The current year's file is optional, because it may not exist in the first days of April; the earlier ones are required. Tools that do not read awards never fetch these files.
+
 Several server processes can share one database (one per client session). It runs in WAL mode with a 10-second busy timeout, and loads take a write lock for their duration.
 
 ## Downloading
@@ -68,9 +70,9 @@ The certificate is read over a connection that carries no request, and data is o
 `npm test` runs the suite with Node's built-in test runner against an in-memory database; it does not use the network.
 
 - `test/csv.test.js` checks the parser against quoted commas, escaped quotes and embedded newlines, and that splitting the input into chunks at every position yields identical rows.
-- `test/search.test.js` loads records through the real column mapping and checks accent-insensitive bilingual matching, that hostile query text cannot break a search, each filter, how the two tender files merge, and how standing-offer rows collapse.
+- `test/search.test.js` loads records through the real column mapping and checks accent-insensitive bilingual matching, that hostile query text cannot break a search, each filter, how the two tender files merge, how standing-offer rows collapse, and how award values, filters and summaries are derived.
 
 ## Planned
 
-- Award notices and contract history. The complete files are 60–190 MB and the archives up to 830 MB, so these will be built into compressed database files by a scheduled GitHub Actions job and published as release assets for the server to download.
+- Contract history and the archives before August 2022. The archives run from 270 to 830 MB, so these will be an optional download, possibly built into compressed database files by a scheduled job and published as release assets.
 - A hosted HTTP transport, so the tools can run where local servers cannot.

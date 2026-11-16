@@ -1,0 +1,37 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.hexacron/northbid",
+  "title": "Northbid: Canadian procurement search",
+  "description": "Search Government of Canada tenders, awards and standing offers from CanadaBuys data. Unofficial.",
+  "repository": {
+    "url": "https://github.com/hexacron/northbid",
+    "source": "github"
+  },
+  "version": "0.2.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "northbid",
+      "version": "0.2.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "NORTHBID_DATA_DIR",
+          "description": "Directory for the local SQLite cache. Defaults to the operating system's cache directory.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        },
+        {
+          "name": "NORTHBID_OFFLINE",
+          "description": "Set to 1 to use only data already downloaded and make no network requests.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        }
+      ]
+    }
+  ]
+}
