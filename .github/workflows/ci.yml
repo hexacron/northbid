@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  test:
+    name: Test (Node ${{ matrix.node }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        # 22.16.0 is the oldest supported release; see the probe in server/index.js.
+        node: ['22.16.0', '22', '24']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ matrix.node }}
+          package-manager-cache: false
+      - run: npm test
+
+  package:
+    name: Package
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: The repository has no dependencies or install scripts
+        run: |
+          node -e '
+            const p = require("./package.json");
+            const bad = ["dependencies", "devDependencies", "optionalDependencies", "peerDependencies"]
+              .filter((k) => p[k] && Object.keys(p[k]).length)
+              .concat(["preinstall", "install", "postinstall", "prepare"].filter((s) => p.scripts?.[s]));
+            if (bad.length) { console.error("package.json must not declare: " + bad.join(", ")); process.exit(1); }
+          '
+      - name: Pack
+        run: npm pack --pack-destination "$RUNNER_TEMP"
+      - name: The tarball holds only the server, licence, READMEs and manifest
+        run: |
+          tar -tzf "$RUNNER_TEMP"/northbid-*.tgz | sort > "$RUNNER_TEMP/files.txt"
+          cat "$RUNNER_TEMP/files.txt"
+          if grep -vE '^package/(server/[a-z]+\.js|LICENSE|README(\.fr)?\.md|package\.json)$' "$RUNNER_TEMP/files.txt"; then
+            echo "::error::unexpected files in the npm tarball"
+            exit 1
+          fi
+      - name: Install the tarball and start it the way npx does
+        working-directory: ${{ runner.temp }}
+        env:
+          NORTHBID_DATA_DIR: ${{ runner.temp }}/data
+          NORTHBID_OFFLINE: '1'
+        run: |
+          mkdir app && cd app
+          npm init -y > /dev/null
+          npm install --ignore-scripts "$RUNNER_TEMP"/northbid-*.tgz
+          printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"ci","version":"0"}}}' \
+            | npx --no-install northbid | tee reply.json
+          grep -q '"serverInfo"' reply.json
