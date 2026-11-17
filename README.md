@@ -59,7 +59,17 @@ gemini extensions install https://github.com/hexacron/northbid
 
 ### Any other MCP client
 
-Clone the repository and register a stdio server that runs `node /absolute/path/to/northbid/server/index.js`. [docs/clients.md](docs/clients.md) has the configuration for each client and notes on what has been tested.
+Register a stdio server that runs `npx -y northbid`. This fetches the package from npm, so there is nothing to clone:
+
+```json
+{
+  "mcpServers": {
+    "northbid": { "command": "npx", "args": ["-y", "northbid"] }
+  }
+}
+```
+
+To run from source instead, clone the repository and use `node /absolute/path/to/northbid/server/index.js`. [docs/clients.md](docs/clients.md) has the configuration for each client and notes on what has been tested.
 
 ## Tools
 

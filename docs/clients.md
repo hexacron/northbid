@@ -58,7 +58,20 @@ The repository root is a Gemini extension (`gemini-extension.json`). Gemini also
 
 ## Other clients
 
-Most clients accept a JSON block like this (Claude Desktop, Cursor, VS Code and others use this shape):
+Most clients accept a JSON block like this (Claude Desktop, Cursor, VS Code and others use this shape). With the npm package, nothing needs cloning:
+
+```json
+{
+  "mcpServers": {
+    "northbid": {
+      "command": "npx",
+      "args": ["-y", "northbid"]
+    }
+  }
+}
+```
+
+From a clone:
 
 ```json
 {
