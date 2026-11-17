@@ -32,19 +32,21 @@ Local MCP servers load in Claude Code and in Cowork sessions that run on your co
 
 ## Codex and the ChatGPT desktop app
 
-Clone the repository, then either run:
+Either run:
 
 ```bash
-codex mcp add northbid -- node /absolute/path/to/northbid/server/index.js
+codex mcp add northbid -- npx -y northbid
 ```
 
 or add this to `~/.codex/config.toml`:
 
 ```toml
 [mcp_servers.northbid]
-command = "node"
-args = ["/absolute/path/to/northbid/server/index.js"]
+command = "npx"
+args = ["-y", "northbid"]
 ```
+
+To run from a clone instead, use `node` with `/absolute/path/to/northbid/server/index.js` as the argument.
 
 In the ChatGPT desktop app the same server can be added under **Settings > MCP servers > Add server**, choosing **STDIO**. The app and the Codex CLI share one configuration.
 

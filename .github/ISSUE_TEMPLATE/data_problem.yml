@@ -1,0 +1,32 @@
+name: Data problem
+description: A result is missing or disagrees with the CanadaBuys website
+labels: [data]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        New notices can take up to a day to reach the open data files, so check the data date in `data_status` first.
+        Problems in the source data itself should also go to [CanadaBuys support](https://canadabuys.canada.ca/en/support).
+  - type: input
+    id: reference
+    attributes:
+      label: Reference number
+      description: The notice, award or agreement the problem is about
+      placeholder: cb-536-24115079
+    validations:
+      required: true
+  - type: textarea
+    id: difference
+    attributes:
+      label: What differs
+      description: What Northbid returned and what the CanadaBuys website shows. Include the page link.
+    validations:
+      required: true
+  - type: textarea
+    id: data-status
+    attributes:
+      label: Output of data_status
+      description: Ask your assistant to run the `data_status` tool and paste the result.
+      render: json
+    validations:
+      required: true

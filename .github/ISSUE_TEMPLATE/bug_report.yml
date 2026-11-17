@@ -1,0 +1,44 @@
+name: Bug report
+description: The server crashed, returned an error, or a tool misbehaved
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Security problems go to the [private reporting form](https://github.com/hexacron/northbid/security/advisories/new), not here.
+        You can write in English or French.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you asked or which tool was called, what you expected, and what you got. Paste any error text.
+    validations:
+      required: true
+  - type: textarea
+    id: data-status
+    attributes:
+      label: Output of data_status
+      description: Ask your assistant to run the `data_status` tool and paste the result.
+      render: json
+  - type: input
+    id: version
+    attributes:
+      label: Northbid version
+      placeholder: 0.2.1
+    validations:
+      required: true
+  - type: input
+    id: node
+    attributes:
+      label: Node.js version
+      description: Output of `node --version`
+      placeholder: v24.1.0
+    validations:
+      required: true
+  - type: input
+    id: client
+    attributes:
+      label: Client and operating system
+      placeholder: Claude Code 2.1 on macOS 15
+    validations:
+      required: true

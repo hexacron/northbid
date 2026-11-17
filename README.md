@@ -1,6 +1,24 @@
-# Northbid
+<p align="center">
+  <img src="assets/icon.svg" width="96" height="96" alt="Northbid logo">
+</p>
 
-**English** | [Français](README.fr.md)
+<h1 align="center">Northbid</h1>
+
+<p align="center">
+  Search Government of Canada tenders, contract awards and standing offers from your AI assistant.
+</p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/northbid"><img src="https://img.shields.io/npm/v/northbid" alt="npm version"></a>
+  <a href="https://github.com/hexacron/northbid/actions/workflows/ci.yml"><img src="https://github.com/hexacron/northbid/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
+  <img src="https://img.shields.io/badge/node-%E2%89%A5%2022.16-339933" alt="Node.js 22.16 or newer">
+  <img src="https://img.shields.io/badge/dependencies-0-brightgreen" alt="No dependencies">
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/hexacron/northbid" alt="MIT licence"></a>
+</p>
+
+<p align="center">
+  <strong>English</strong> | <a href="README.fr.md">Français</a>
+</p>
 
 Search Government of Canada procurement data from your AI assistant. Northbid is a local [Model Context Protocol](https://modelcontextprotocol.io) server that loads the open data published by [CanadaBuys](https://canadabuys.canada.ca/en/procurement-and-contracting-data) into a small database on your computer and gives the assistant tools to search it, in English or French.
 
@@ -8,24 +26,23 @@ It works with Claude Code and Cowork, Codex and the ChatGPT desktop app, Gemini 
 
 > **Unofficial.** Northbid is not affiliated with or endorsed by the Government of Canada, CanadaBuys or Public Services and Procurement Canada. The CanadaBuys website is the authoritative source; confirm every detail there before you bid.
 
-## What you can ask
+## Example
 
-- "Find open federal tenders for translation services I could deliver in Ontario."
-- "What IT security opportunities close in the next three weeks? Show the selection criteria for the top three."
-- "Quels appels d'offres fédéraux sont ouverts pour des travaux de construction au Québec ?"
-- "Which suppliers hold standing offers for light duty vehicles, and when do they expire?"
-- "Who won the last snow removal contracts at CFB Petawawa, and for how much?"
-- "Which suppliers won the most translation work since April 2025?"
+> **You:** Which suppliers won the most translation work since April 2025?
 
-## What it covers
+The assistant calls `summarize_awards` with `{"group_by": "supplier", "query": "translation OR traduction", "awarded_after": "2025-04-01"}` and answers from the result:
 
-| Dataset | Records | Source refresh |
-|---|---|---|
-| Open tender notices | about 950 | daily, plus new notices every 2 hours |
-| Active standing offers and supply arrangements | about 4,000 agreements | weekly |
-| Award notices since August 2022 | about 30,000 | daily |
+> 171 award notices matched, worth $44.9 million in total across 114 suppliers. The top three by value:
+>
+> | Supplier | Awards | Total value (CAD) | Largest award (CAD) |
+> |---|---|---|---|
+> | R&R International Translation Specialists Inc. | 5 | $8,146,105 | $7,342,315 |
+> | SYM Communications Inc. | 8 | $4,560,685 | $1,437,188 |
+> | Adirondack Information Management Inc. | 1 | $3,749,340 | $3,749,340 |
+>
+> 89 of the 171 notices carry no value, mostly standing offers and supply arrangements, so treat the totals as indicative.
 
-Federal organizations only. Contract amendments, closed tenders and the archives before August 2022 are on the [roadmap](#roadmap). See [docs/data.md](docs/data.md) for the schema and known quirks.
+The figures are real tool output from the data of 17 November 2026. The wording of the answer depends on your assistant.
 
 ## Requirements
 
@@ -45,8 +62,7 @@ The plugin adds the server and a `find-opportunities` skill. Local MCP servers d
 ### Codex and the ChatGPT desktop app
 
 ```bash
-git clone https://github.com/hexacron/northbid.git
-codex mcp add northbid -- node /absolute/path/to/northbid/server/index.js
+codex mcp add northbid -- npx -y northbid
 ```
 
 Codex and the ChatGPT desktop app share this configuration.
@@ -70,6 +86,25 @@ Register a stdio server that runs `npx -y northbid`. This fetches the package fr
 ```
 
 To run from source instead, clone the repository and use `node /absolute/path/to/northbid/server/index.js`. [docs/clients.md](docs/clients.md) has the configuration for each client and notes on what has been tested.
+
+## What you can ask
+
+- "Find open federal tenders for translation services I could deliver in Ontario."
+- "What IT security opportunities close in the next three weeks? Show the selection criteria for the top three."
+- "Quels appels d'offres fédéraux sont ouverts pour des travaux de construction au Québec ?"
+- "Which suppliers hold standing offers for light duty vehicles, and when do they expire?"
+- "Who won the last snow removal contracts at CFB Petawawa, and for how much?"
+- "Which suppliers won the most translation work since April 2025?"
+
+## What it covers
+
+| Dataset | Records | Source refresh |
+|---|---|---|
+| Open tender notices | about 950 | daily, plus new notices every 2 hours |
+| Active standing offers and supply arrangements | about 4,000 agreements | weekly |
+| Award notices since August 2022 | about 30,000 | daily |
+
+Federal organizations only. Contract amendments, closed tenders and the archives before August 2022 are on the [roadmap](#roadmap). See [docs/data.md](docs/data.md) for the schema and known quirks.
 
 ## Tools
 

@@ -26,9 +26,11 @@
     "government"
   ],
   "homepage": "https://github.com/hexacron/northbid",
+  "bugs": "https://github.com/hexacron/northbid/issues",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hexacron/northbid.git"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "author": "hexacron (https://github.com/hexacron)"
 }

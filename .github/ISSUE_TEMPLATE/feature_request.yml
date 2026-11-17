@@ -1,0 +1,16 @@
+name: Feature request
+description: A question you could not answer, a missing dataset, or a client to support
+labels: [enhancement]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: What you were trying to find out
+      description: The question you asked your assistant, or the task you had in mind.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would help
+      description: A new filter, tool or dataset, if you have one in mind. The roadmap is in the README.
