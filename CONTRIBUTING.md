@@ -40,6 +40,7 @@ claude plugin validate .
 - **Tool descriptions are part of the product.** They are what a model reads. When behaviour changes, change the description and [docs/tools.md](docs/tools.md) with it.
 - **Be frugal with output.** Search results are summaries; detail belongs in `get_tender`.
 - **Schema changes** need a `SCHEMA_VERSION` bump in `server/store.js` and an update to [docs/data.md](docs/data.md).
+- **Two READMEs.** A change to `README.md` needs the same change in `README.fr.md`. The other documents are English only.
 
 ## Releasing
 

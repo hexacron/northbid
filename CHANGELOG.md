@@ -5,6 +5,7 @@
 - Award notices published on CanadaBuys since August 2022: who won, from which buyer, when and for how much. New tools `search_awards`, `get_award` and `summarize_awards`. The five yearly files, about 110 MB, are downloaded the first time an award tool is used.
 - The local database is rebuilt on first start after upgrading.
 - `server.json` for the MCP registry.
+- French README.
 
 ## 0.1.0
 
