@@ -10,7 +10,19 @@ import { records } from './csv.js';
 import { FILES, TABLES } from './datasets.js';
 import { download } from './download.js';
 
-const SCHEMA_VERSION = 2;
+// Several times the largest source file; a body beyond this is not the file we asked for.
+const MAX_FILE_CHARS = 256 * 1024 * 1024;
+
+async function* capped(chunks) {
+  let size = 0;
+  for await (const chunk of chunks) {
+    size += chunk.length;
+    if (size > MAX_FILE_CHARS) throw new Error('the source file is far larger than expected');
+    yield chunk;
+  }
+}
+
+const SCHEMA_VERSION = 3;
 
 /** Cache directory: explicit override, then the plugin data dir, then the OS cache dir. */
 export function defaultDataDir(env = process.env) {
@@ -30,7 +42,7 @@ export class Store {
     if (dir === ':memory:') {
       this.path = dir;
     } else {
-      mkdirSync(dir, { recursive: true });
+      mkdirSync(dir, { recursive: true, mode: 0o700 });
       this.path = join(dir, 'northbid.sqlite');
     }
     this.offline = offline;
@@ -115,7 +127,7 @@ export class Store {
       throw new Error(`HTTP ${res.statusCode}`);
     }
     const rows = [];
-    for await (const row of file.rows(records(res.setEncoding('utf8')))) rows.push(row);
+    for await (const row of file.rows(records(capped(res.setEncoding('utf8'))))) rows.push(row);
     // An empty required file is an upstream fault; keep what we have.
     if (rows.length === 0 && file.required) throw new Error('the source file contained no rows');
     const modified = Date.parse(res.headers['last-modified'] ?? '');
@@ -185,7 +197,8 @@ export class Store {
 
   status() {
     return {
-      database: this.path,
+      // Shown to the model, so the home directory (and user name) is left out.
+      database: this.path.startsWith(homedir()) ? `~${this.path.slice(homedir().length)}` : this.path,
       offline: this.offline,
       files: FILES.map((f) => {
         const known = this.#file(f.id);

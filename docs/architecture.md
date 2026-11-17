@@ -59,7 +59,7 @@ Several server processes can share one database (one per client session). It run
 `sosa.canadabuys.canada.ca` serves its certificate without the intermediate certificate that signed it. Browsers repair this by fetching the issuer from the address in the certificate's Authority Information Access field; Node does not and rejects the connection. `download.js` performs the same repair:
 
 1. On that specific verification error, read the server certificate and its issuer address.
-2. Fetch the issuer certificate.
+2. Fetch the issuer certificate. That address comes from a certificate not yet verified, so it must be a host name that resolves to a public address; literal IP addresses and loopback, private and link-local addresses are refused.
 3. Accept it only if it is currently valid, it signed the server certificate, and it was itself signed by a root authority in Node's built-in trust store.
 4. Retry the request with that issuer added, and remember it for the life of the process.
 
@@ -71,6 +71,7 @@ The certificate is read over a connection that carries no request, and data is o
 
 - `test/csv.test.js` checks the parser against quoted commas, escaped quotes and embedded newlines, and that splitting the input into chunks at every position yields identical rows.
 - `test/search.test.js` loads records through the real column mapping and checks accent-insensitive bilingual matching, that hostile query text cannot break a search, each filter, how the two tender files merge, how standing-offer rows collapse, and how award values, filters and summaries are derived.
+- `test/release.test.js` checks that every manifest carries the same version, and starts the real entry point to exchange MCP messages over stdio with the network off.
 
 ## Planned
 

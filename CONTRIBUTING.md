@@ -44,7 +44,21 @@ claude plugin validate .
 
 ## Releasing
 
-Raise the version in `package.json`, `server.json` (both `version` fields), `.claude-plugin/plugin.json` and `gemini-extension.json` together, and add an entry to [CHANGELOG.md](CHANGELOG.md).
+1. Raise the version in `package.json`, `server.json` (both `version` fields), `.claude-plugin/plugin.json` and `gemini-extension.json` together, and add an entry to [CHANGELOG.md](CHANGELOG.md). `npm test` fails if they disagree.
+2. Merge to `main` and wait for CI to pass.
+3. Tag the commit and push the tag: `git tag v0.3.0 && git push origin v0.3.0`. Tags cannot be moved or deleted afterwards.
+4. The [release workflow](.github/workflows/release.yml) runs CI again and stages the package on npm. Nothing is public yet.
+5. Review and approve the staged package on npmjs.com, under **Staged Packages**, with two-factor authentication.
+6. Approve the `release` environment on the workflow run. It publishes `server.json` to the MCP registry and creates the GitHub release from the changelog entry.
+
+Nothing is published from a laptop and no publishing token is stored anywhere. The one-time setup behind this:
+
+- On npmjs.com, the package's **Trusted Publisher** is GitHub Actions, repository `hexacron/northbid`, workflow `release.yml`, no environment, allowed action `npm stage publish` only. **Publishing access** is set to require two-factor authentication and disallow tokens.
+- On GitHub, the `release` environment requires a reviewer and accepts only `v*` tags.
+
+## Continuous integration
+
+Every push and pull request runs [CI](.github/workflows/ci.yml): the tests on Linux, macOS and Windows with Node 22.16.0, 22 and 24, then a packaging job that fails if `package.json` gains a dependency or an install script, checks what is in the npm tarball, and starts the installed package. Actions are pinned to commits and updated by Dependabot. Security practices are in [SECURITY.md](SECURITY.md).
 
 ## Reporting data problems
 

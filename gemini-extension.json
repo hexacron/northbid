@@ -1,6 +1,6 @@
 {
   "name": "northbid",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Search Government of Canada tenders, contract awards and standing offers from CanadaBuys open data, in English or French. Unofficial.",
   "mcpServers": {
     "northbid": {

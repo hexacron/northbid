@@ -69,9 +69,10 @@ export function serve({ info, instructions, tools, prompts }, input = process.st
       send({ jsonrpc: '2.0', id: null, error: { code: -32700, message: 'Parse error' } });
       return;
     }
+    if (message === null || typeof message !== 'object') return;
     const isRequest = message.id !== undefined && message.id !== null && typeof message.method === 'string';
     if (!isRequest) return; // notifications and responses need no reply
-    const method = methods[message.method];
+    const method = Object.hasOwn(methods, message.method) ? methods[message.method] : undefined;
     if (!method) {
       send({ jsonrpc: '2.0', id: message.id, error: { code: -32601, message: `Method not found: ${message.method}` } });
       return;

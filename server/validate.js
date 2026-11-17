@@ -37,9 +37,11 @@ function checkValue(name, spec, value) {
 export function validate(schema, args) {
   if (args === undefined || args === null) args = {};
   if (typeof args !== 'object' || Array.isArray(args)) throw new InputError('Arguments must be an object.');
-  const out = {};
+  // No prototype: an argument named "__proto__" or "constructor" must be an
+  // unknown argument, not a way to smuggle values past the checks below.
+  const out = Object.create(null);
   for (const [name, value] of Object.entries(args)) {
-    const spec = schema.properties[name];
+    const spec = Object.hasOwn(schema.properties, name) ? schema.properties[name] : undefined;
     if (!spec) {
       throw new InputError(`Unknown argument "${name}". Allowed: ${Object.keys(schema.properties).join(', ')}.`);
     }

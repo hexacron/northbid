@@ -28,10 +28,17 @@ export function decodeEntities(s) {
   });
 }
 
+// Characters a reader cannot see but a model can: control codes other than
+// tab and line breaks, zero-width and direction marks, and Unicode tags.
+// Notice text is written by third parties and is shown to a model.
+const INVISIBLE = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f\u00ad\u200b-\u200f\u202a-\u202e\u2060-\u2069\ufeff\u{e0000}-\u{e007f}]/gu;
+
+const decode = (s) => decodeEntities(s).replace(INVISIBLE, '');
+
 /** Free text: strips tags, decodes entities, normalizes whitespace. */
 export function cleanText(s) {
   if (!s) return '';
-  return decodeEntities(
+  return decode(
     s.replace(/<br\s*\/?>|<\/(?:p|div|li|tr|h[1-6])>/gi, '\n').replace(/<\/?[a-z][^<>]*>/gi, ''),
   )
     .replace(/\r\n?/g, '\n')
@@ -43,7 +50,7 @@ export function cleanText(s) {
 
 /** Single-value cell. */
 export function trim(s) {
-  return s ? decodeEntities(s).trim() : '';
+  return s ? decode(s).trim() : '';
 }
 
 /** Multi-value cell (`*A\n*B`) to newline-separated values without the marker. */
@@ -51,7 +58,7 @@ export function multi(s) {
   if (!s) return '';
   return s
     .split('\n')
-    .map((v) => decodeEntities(v.replace(/^\s*\*/, '')).trim())
+    .map((v) => decode(v.replace(/^\s*\*/, '')).trim())
     .filter(Boolean)
     .join('\n');
 }

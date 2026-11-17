@@ -119,6 +119,7 @@ Settings, all optional environment variables:
 - [docs/data.md](docs/data.md): datasets, schema and caveats
 - [docs/architecture.md](docs/architecture.md): how it is built
 - [CONTRIBUTING.md](CONTRIBUTING.md): development and tests
+- [SECURITY.md](SECURITY.md): reporting a vulnerability, trust boundaries, how releases are built
 
 ## Licence and attribution
 

@@ -122,6 +122,7 @@ La documentation détaillée est en anglais.
 - [docs/data.md](docs/data.md) : jeux de données, schéma et mises en garde
 - [docs/architecture.md](docs/architecture.md) : architecture
 - [CONTRIBUTING.md](CONTRIBUTING.md) : développement et tests
+- [SECURITY.md](SECURITY.md) : signalement d'une vulnérabilité, limites de confiance, fabrication des versions
 
 ## Licence et attribution
 
