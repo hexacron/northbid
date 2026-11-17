@@ -20,6 +20,10 @@
   <strong>English</strong> | <a href="README.fr.md">Français</a>
 </p>
 
+<p align="center">
+  <img src="assets/demo.gif" width="820" alt="Claude Code answering which suppliers won the most federal translation contracts since April 2025, using Northbid">
+</p>
+
 Search Government of Canada procurement data from your AI assistant. Northbid is a local [Model Context Protocol](https://modelcontextprotocol.io) server that loads the open data published by [CanadaBuys](https://canadabuys.canada.ca/en/procurement-and-contracting-data) into a small database on your computer and gives the assistant tools to search it, in English or French.
 
 It works with Claude Code and Cowork, Codex and the ChatGPT desktop app, Gemini CLI, and any other client that can run a local MCP server. It is free, needs no account, and has no dependencies beyond Node.js.

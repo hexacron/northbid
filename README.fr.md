@@ -20,6 +20,10 @@
   <a href="README.md">English</a> | <strong>Français</strong>
 </p>
 
+<p align="center">
+  <img src="assets/demo.gif" width="820" alt="Claude Code, à l'aide de Northbid, indique quels fournisseurs ont obtenu le plus de contrats fédéraux de traduction depuis avril 2025 (démonstration en anglais)">
+</p>
+
 Interrogez les données d'approvisionnement du gouvernement du Canada depuis votre assistant IA. Northbid est un serveur local [Model Context Protocol](https://modelcontextprotocol.io) : il charge les données ouvertes publiées par [AchatsCanada](https://achatscanada.canada.ca/fr/donnees-d-approvisionnement-et-d-attribution) dans une petite base de données sur votre ordinateur et donne à l'assistant des outils pour y chercher, en français ou en anglais.
 
 Il fonctionne avec Claude Code et Cowork, Codex et l'application de bureau ChatGPT, Gemini CLI et tout autre client capable de lancer un serveur MCP local. Il est gratuit, ne demande aucun compte et n'a aucune dépendance autre que Node.js.
