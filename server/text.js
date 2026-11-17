@@ -38,9 +38,13 @@ const decode = (s) => decodeEntities(s).replace(INVISIBLE, '');
 /** Free text: strips tags, decodes entities, normalizes whitespace. */
 export function cleanText(s) {
   if (!s) return '';
-  return decode(
-    s.replace(/<br\s*\/?>|<\/(?:p|div|li|tr|h[1-6])>/gi, '\n').replace(/<\/?[a-z][^<>]*>/gi, ''),
-  )
+  let text = s.replace(/<br\s*\/?>|<\/(?:p|div|li|tr|h[1-6])>/gi, '\n');
+  // Repeat until stable: removing a tag from "<scr<b>ipt>" leaves a new one.
+  for (let before = ''; before !== text; ) {
+    before = text;
+    text = text.replace(/<\/?[a-z][^<>]*>/gi, '');
+  }
+  return decode(text)
     .replace(/\r\n?/g, '\n')
     .replace(/[ \t\u00a0]+/g, ' ')
     .replace(/ ?\n ?/g, '\n')

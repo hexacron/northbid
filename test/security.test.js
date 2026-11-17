@@ -32,6 +32,7 @@ test('invisible and direction-changing characters are removed from notice text',
   assert.equal(multi(`*${hidden}\n*B`), 'Snow removal services\nB');
   assert.equal(cleanText(`Line one\r\n\tLine\u2066 two\ufeff`), 'Line one\nLine two');
   assert.equal(trim('Réparations — été'), 'Réparations — été');
+  assert.equal(cleanText('a <scr<b>ipt>alert(1)</scr</b>ipt> b'), 'a alert(1) b');
 });
 
 test('issuer certificates are never fetched from inside the machine or local network', () => {
