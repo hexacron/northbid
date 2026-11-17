@@ -117,14 +117,18 @@ export function searchTenders(db, a) {
   });
 }
 
+// Lookups repeat a plain `?` per comparison: numbered parameters (`?1`) fail
+// to bind on Node 22.16.
+
 /** Notices whose reference or solicitation number equals `id`, newest amendment first. */
 export function getTenders(db, id) {
+  const key = id.trim();
   return db
     .prepare(
-      `SELECT * FROM tenders WHERE reference_number = ?1 COLLATE NOCASE OR solicitation_number = ?1 COLLATE NOCASE
+      `SELECT * FROM tenders WHERE reference_number = ? COLLATE NOCASE OR solicitation_number = ? COLLATE NOCASE
        ORDER BY publication_date DESC LIMIT 20`,
     )
-    .all(id.trim());
+    .all(key, key);
 }
 
 /** @param {import('node:sqlite').DatabaseSync} db */
@@ -200,12 +204,12 @@ export function searchAwards(db, a) {
 
 /** Award notices whose reference, solicitation or contract number equals `id`, newest first. */
 export function getAwards(db, id, limit) {
-  const sql = `FROM awards WHERE reference_number = ?1 COLLATE NOCASE OR solicitation_number = ?1 COLLATE NOCASE
-    OR contract_number = ?1 COLLATE NOCASE`;
+  const sql = `FROM awards WHERE reference_number = ? COLLATE NOCASE OR solicitation_number = ? COLLATE NOCASE
+    OR contract_number = ? COLLATE NOCASE`;
   const key = id.trim();
   return {
-    total: db.prepare(`SELECT count(*) AS n ${sql}`).get(key).n,
-    rows: db.prepare(`SELECT * ${sql} ORDER BY award_date DESC, reference_number LIMIT ?2`).all(key, limit),
+    total: db.prepare(`SELECT count(*) AS n ${sql}`).get(key, key, key).n,
+    rows: db.prepare(`SELECT * ${sql} ORDER BY award_date DESC, reference_number LIMIT ?`).all(key, key, key, limit),
   };
 }
 

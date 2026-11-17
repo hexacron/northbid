@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { FILES } from '../server/datasets.js';
 import {
-  ftsQuery, getAwards, searchAwards, searchStandingOffers, searchTenders, summarizeAwards,
+  ftsQuery, getAwards, getTenders, searchAwards, searchStandingOffers, searchTenders, summarizeAwards,
 } from '../server/search.js';
 import { Store } from '../server/store.js';
 import { cleanText } from '../server/text.js';
@@ -86,6 +86,7 @@ test('filters: buyer in either language, category, UNSPSC family, past deadlines
     ['cb-2', 'cb-3'],
   );
   assert.equal(searchTenders(store.db, { ...DEFAULTS, closing_before: '2026-12-01' }).total, 2);
+  assert.deepEqual(refs({ rows: getTenders(store.db, ' CB-1 ') }), ['cb-1']);
 });
 
 test('the new-notices file adds notices without overriding or outliving the open file', async () => {

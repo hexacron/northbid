@@ -28,7 +28,7 @@ test('every manifest carries the package version and the registry name', () => {
   );
   assert.equal(server.name, pkg.mcpName);
   assert.equal(server.packages[0].identifier, pkg.name);
-  assert.ok(readFileSync(join(root, 'CHANGELOG.md'), 'utf8').includes(`\n## ${pkg.version}\n`), 'CHANGELOG has no entry');
+  assert.match(readFileSync(join(root, 'CHANGELOG.md'), 'utf8'), new RegExp(`^## ${pkg.version.replaceAll('.', '\\.')}\\r?$`, 'm'));
 });
 
 test('the entry point answers MCP requests over stdio without the network', async () => {

@@ -11,6 +11,7 @@ Security hardening after a review. None of these was known to be exploited.
 - `bidding_url` is returned only when it is an http or https link.
 - Downloads are capped at 256 MB per file; the cache directory is created private to the user; `data_status` no longer reveals the home directory name.
 - Continuous integration, a tag-driven release workflow with npm trusted publishing and provenance, and a security policy.
+- Fixed `get_award` failing with "column index out of range" on Node 22.16, found by the new test matrix.
 
 ## 0.2.0
 
